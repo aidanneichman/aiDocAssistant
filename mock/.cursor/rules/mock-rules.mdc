@@ -1,0 +1,53 @@
+---
+description: Mock test rules for August Founding AI Engineer exercise
+globs:
+  - "**/*.py"
+  - "**/*.tsx"
+  - "**/*.ts"
+alwaysApply: false
+---
+
+# Context
+This project is a mock technical interview for a Founding AI Engineer role at August.
+Backend: Python 3.11+, Poetry, FastAPI, httpx, pydantic v2, aiofiles, optional SQLAlchemy + aiosqlite.
+Frontend: minimal React/Vite or HTML+JS; must support streaming via SSE.
+Features: file upload (PDF/DOCX/TXT), session-based chat with modes "regular" and "deep-research".
+Non-functional: security for uploads, streaming UX, observability, tests, and Poetry workflow.
+
+# Development Rules
+- Always use Poetry for dependency management (`poetry add` for runtime, `poetry add -G dev` for dev).
+- Maintain clean `pyproject.toml` with scripts: `dev`, `test`, `watch`, `fmt`, `typecheck`.
+- Prefer Model Context Protocol (MCP) for external tool integrations; if not possible, create thin adapters in `/clients/mcp_*.py`.
+- Keep code in layers: `routes/` (FastAPI endpoints), `services/` (business logic), `clients/` (external API/MCP), `models/` (pydantic DTOs), `tests/` (pytest).
+
+# Testing
+- Every new feature or change must include unit tests (pytest).
+- Stub external API calls (OpenAI, MCP) in tests — no live calls in CI.
+- Keep tests fast (<2s per file); mark slow tests with `@pytest.mark.slow`.
+- Run tests automatically on file changes via `poetry run watch`.
+
+# Streaming
+- Use SSE (text/event-stream) for chat responses; stream tokens progressively.
+- Include heartbeats for long-running operations.
+- The frontend should render messages incrementally without blocking.
+
+# Security
+- Validate MIME types and size limits for uploads (reject >20MB).
+- Sanitize filenames; store as content-addressed hashes.
+- Never return raw file paths; use signed or mock URLs for attachments.
+- Do not log secrets, sensitive document text, or PII.
+
+# Observability
+- Structured logs for: uploads, session create, message start/stop, external API call durations.
+- Add health (`/healthz`) and readiness (`/readyz`) endpoints.
+
+# Code Style
+- Enforce ruff lint + format; run `poetry run fmt` before commits.
+- Use strict typing (`mypy --strict`) where possible.
+- Keep diffs small (<60 lines) unless explicitly discussed.
+
+# Prompts to Use in This Project
+- “Implement X in ≤50 lines, updating only necessary files.”
+- “Add pytest for new service functions before coding them.”
+- “Refactor to move external API logic into a `clients/` adapter; keep interface unchanged.”
+- “Instrument with structured logs; exclude sensitive content.”
